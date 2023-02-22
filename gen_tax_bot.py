@@ -73,7 +73,7 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Hello {update.effective_user.first_name}. I am a taxbot. Ask me a question about taxes and I will try to answer it. (e.g. What is Income Tax). I am still learning so please be patient.')
 
 async def message(update: Update, context):
-    #print("Received message: " + update.message.text+ " from " + update.effective_user.first_name)
+    print("Received message: " + update.message.text+ " from " + update.effective_user.first_name)
     query = update.message.text
     if len(query) < 4:
         #if any of the greeting keywords are present in the query, send a greeting
