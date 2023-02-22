@@ -1,2 +1,5 @@
 pyTelegramBotAPI==4.10.0
 transformers
+pinecone-client
+sentence-transformers
+torch
