@@ -1,6 +1,8 @@
 import pinecone
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler
+# import the required modules
+from torch.cuda.amp import autocast, GradScaler
 
 # connect to pinecone environment
 pinecone.init(
@@ -26,7 +28,7 @@ generator = BartForConditionalGeneration.from_pretrained('vblagoje/bart_lfqa').t
 
 def query_pinecone(query, top_k):
     # generate embeddings for the query
-    xq = retriever.encode([query]).tolist()
+    xq = retriever.encode([query],batch_size=1).tolist()
     # search pinecone index for context passage with the answer
     xc = index.query(xq, top_k=top_k, include_metadata=True)
     return xc
@@ -41,10 +43,13 @@ def format_query(query, context):
     return query
 
 def generate_answer(query):
+    scaler = GradScaler()
+
     # tokenize the query to get input_ids
     inputs = tokenizer([query], max_length=1024, return_tensors="pt")
     # use generator to predict output ids
-    ids = generator.generate(input_ids=inputs["input_ids"].to(device),
+    with autocast():
+        ids = generator.generate(input_ids=inputs["input_ids"].to(device),
                                            attention_mask=inputs["attention_mask"].to(device),
                                            min_length=26,
                                            max_length=256,
@@ -61,15 +66,30 @@ def generate_answer(query):
     answer = tokenizer.batch_decode(ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
     return answer
 
+GREETING_KEYWORDS = ("hello", "hi", "greetings", "sup", "what's up", "hey")
+GOODBYE_KEYWORDS = ("bye", "goodbye", "see you later", "see you soon", "farewell", "adios", "ciao", "au revoir", "good night", "good day", "good morning", "good evening")
+
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f'Hello {update.effective_user.first_name}. I am a taxbot. Ask me a question about taxes and I will try to answer it. (e.g. What is Income Tax). I am still learning so please be patient.')
 
 async def message(update: Update, context):
+    #print("Received message: " + update.message.text+ " from " + update.effective_user.first_name)
     query = update.message.text
+    if len(query) < 4:
+        #if any of the greeting keywords are present in the query, send a greeting
+        if any(word in query.lower() for word in GREETING_KEYWORDS):
+            await update.message.reply_text(f'Hello {update.effective_user.first_name}. I am a taxbot. Ask me a question about taxes and I will try to answer it. (e.g. What is Income Tax). I am still learning so please be patient.')
+            return
+        #if any of the goodbye keywords are present in the query, send a goodbye message
+        elif any(word in query.lower() for word in GOODBYE_KEYWORDS):
+            await update.message.reply_text("Goodbye! Have a nice day!")
+            return
+    
     result = query_pinecone(query, top_k=3)
     matches = result["matches"]
     #filter matches with score less than 0.5
-    matches = [m for m in matches if m["score"] >= 0.5]
+    print(str(matches))
+    matches = [m for m in matches if m["score"] >= 0.3]
     if len(matches) == 0:
         await update.message.reply_text("Sorry, I don't know the answer to that question. Please try again.")
         return
@@ -77,7 +97,7 @@ async def message(update: Update, context):
     await update.message.reply_text(generate_answer(query))
 
 
-app = ApplicationBuilder().token("6020966392:AAEykpo7mcFM9pjeCp5bRfA5tuFJmrCpVoY").build()
+app = ApplicationBuilder().token("6020966392:AAEykpo7mcFM9pjeCp5bRfA5tuFJmrCpVoY").connect_timeout(60).build()
 
 app.add_handler(CommandHandler("hello", hello))
 app.add_handler(MessageHandler(None, message))
