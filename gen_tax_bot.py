@@ -61,6 +61,7 @@ async def message(update: Update, context):
     query = update.message.text
     result = query_pinecone(query, top_k=2)
     query = format_query(query, result["matches"])
+    print(str(result["matches"]))
     await update.message.reply_text(generate_answer(query))
 
 
