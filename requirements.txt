@@ -1,5 +1,4 @@
 python-telegram-bot
-git+https://github.com/eternnoir/pyTelegramBotAPI.git
 transformers
 pinecone-client
 sentence-transformers
