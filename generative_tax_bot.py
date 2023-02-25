@@ -4,9 +4,14 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 # import the required modules
 from torch.cuda.amp import autocast, GradScaler
 
+TELEGRAM_BOT_TOKEN='your_telegram_bot_token'
+PINECONE_API_KEY='your_pinecone_api_key'
+
+
+
 # connect to pinecone environment
 pinecone.init(
-    api_key="305100e5-8a5c-4e22-bd61-7fc99335626c",
+    api_key=PINECONE_API_KEY,
     environment="us-east1-gcp"  # find next to API key in console
 )
 
@@ -97,7 +102,7 @@ async def message(update: Update, context):
     await update.message.reply_text(generate_answer(query))
 
 
-app = ApplicationBuilder().token("6020966392:AAEykpo7mcFM9pjeCp5bRfA5tuFJmrCpVoY").connect_timeout(60).build()
+app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).connect_timeout(60).build()
 
 app.add_handler(CommandHandler("hello", hello))
 app.add_handler(MessageHandler(None, message))
