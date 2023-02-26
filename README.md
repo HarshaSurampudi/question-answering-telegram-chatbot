@@ -7,7 +7,7 @@ The following is it's workflow:
 - The relavant pre-indexed documents are fetched from `pinecone`
 - The transformer model generates a long form answer based on the question and context.
 
-
+The model used for text generation is `vblagoje/bart_lfqa` from huggingface.
 
 ## Installation Instructions:
 Create a virtual environment (highly suggested)
