@@ -7,9 +7,9 @@ The following is it's workflow:
 - The relavant pre-indexed documents are fetched from `pinecone`
 - The transformer model generates a long form answer based on the question and context.
 
-The model used for text generation is `vblagoje/bart_lfqa` from huggingface.
-The model used for computing embeddings for indexing is `flax-sentence-embeddings/all_datasets_v3_mpnet-base` from huggingface.
-Pinecone is used for storing and searching through embeddings.
+- The model used for text generation is `vblagoje/bart_lfqa` from huggingface.
+- The model used for computing embeddings for indexing is `flax-sentence-embeddings/all_datasets_v3_mpnet-base` from huggingface.
+- Pinecone is used for storing and searching through embeddings.
 
 ## Installation Instructions:
 Create a virtual environment (highly suggested)
